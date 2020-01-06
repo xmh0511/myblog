@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base href="@{base_path}">
+    <!-- meta -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>文章</title>
+
+    <!-- css -->
+    <link rel="stylesheet" href="@{base_path}/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="@{base_path}/static/css/ionicons.min.css">
+    <link rel="stylesheet" href="@{base_path}/static/css/pace.css">
+    <link rel="stylesheet" href="@{base_path}/static/css/custom.css">
+    <link rel="stylesheet" href="@{base_path}/static/css/editormd.min.css" />
+
+    <!-- js -->
+    <script src="@{base_path}/static/js/jquery-2.1.3.min.js"></script>
+    <script src="@{base_path}/static/js/bootstrap.min.js"></script>
+    <script src="@{base_path}/static/js/pace.min.js"></script>
+    <script src="@{base_path}/static/js/modernizr.custom.js"></script>
+</head>
+
+<body id="single">
+    <div class="container">
+        {% include "./tmpl/head.html" %}
+    </div>
+
+    <div class="content-body">
+        <div class="container">
+            <div class="row">
+                <main class="col-md-8">
+                    {% if state == true %}
+                    <article class="post post-1">
+                        <header class="entry-header">
+                            <h1 class="entry-title">@{article_data.title}</h1>
+                            <div class="entry-meta">
+                                <span class="post-category"><a href="#">@{tags}</a></span>
+                                <span class="post-date"><a href="#"><time class="entry-date"
+                                            datetime="2012-11-09T23:15:57+00:00">@{article_data.update_at}</time></a></span>
+                                <span class="post-author"><a href="#">@{author}</a></span>
+                                <span class="comments-link"><a href="#">@{length(comment_list)} 评论</a></span>
+                                <span class="views-count"><a href="#">@{browse_count} 阅读</a></span>
+                            </div>
+                        </header>
+                        <div class="entry-content clearfix">
+                            @{article_data.content}
+                        </div>
+                    </article>
+                    <section class="comment-area" id="comment-area">
+                        <hr>
+                        <h3>发表评论</h3>
+                        <form action="@{base_path}/addComment" method="post" class="comment-form">
+                            <div class="row">
+                                <input style="display: none;" name="id" value="@{article_data.id}" />
+                                <div class="col-md-12">
+                                    <label for="id_comment">评论：</label>
+                                    <textarea name="comment" id="id_comment" required></textarea>
+                                    <button type="submit" class="comment-btn">发表</button>
+                                </div>
+                            </div> <!-- row -->
+                        </form>
+                        <div class="comment-list-panel">
+                            <h3>评论列表，共 <span>@{length(comment_list)}</span> 条评论</h3>
+                            <ul class="comment-list list-unstyled">
+                                {% for comment in comment_list %}
+                                <li class="comment-item">
+                                    <span class="nickname">@{comment.name}</span>
+                                    <time class="submit-date" datetime="@{comment.time}">@{comment.time}</time>
+                                    <div class="text">
+                                        @{comment.content}
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </section>
+                    {% else %}
+                    <div>@{msg}</div>
+                    {% endif %}
+                </main>
+                {% include "./tmpl/aside.html" %}
+            </div>
+        </div>
+    </div>
+    {% include "./tmpl/foot.html" %}
+
+    {% include "./tmpl/mobile.html" %}
+
+    <script src="@{base_path}/static/js/script.js"></script>
+
+</body>
+
+</html>

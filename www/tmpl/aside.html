@@ -1,0 +1,35 @@
+<aside class="col-md-4">
+    <div class="widget widget-recent-posts">
+        <h3 class="widget-title">最新文章</h3>
+        <ul>
+            {% if length(article_list) >= 1 %}
+            <li>
+                <a href="@{base_path}/detail/@{article_list.0.id}">@{article_list.0.title}</a>
+            </li>
+            {% endif %}
+            {% if length(article_list) >= 2 %}
+            <li>
+                <a href="@{base_path}/detail/@{article_list.1.id}">@{article_list.1.title}</a>
+            </li>
+            {% endif %}
+            {% if length(article_list) >= 3 %}
+            <li>
+                <a href="@{base_path}/detail/@{article_list.2.id}">@{article_list.2.title}</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <div class="widget widget-tag-cloud">
+        <h3 class="widget-title">标签云</h3>
+        <ul>
+            {% for item in tag_list %}
+            <li>
+                <a href="javascript:void(0)" class="tagItem" data-id="@{item.id}" data-state="false">@{item.name}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="rss">
+        <a href=""><span class="ion-social-rss-outline"></span> RSS 订阅</a>
+    </div>
+</aside>
