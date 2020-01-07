@@ -86,7 +86,7 @@
 					<nav aria-label="Page navigation">
 						<ul class="pagination">
 							<li>
-								<a href="@{base_path}/blog?pageNumber=@{calcNumber(now_page,-1)}&pageSize=@{page_size}"
+								<a href="@{base_path}/myblog?pageNumber=@{calcNumber(now_page,-1)}&pageSize=@{page_size}"
 									aria-label="Previous">
 									<span aria-hidden="true">&laquo;</span>
 								</a>
@@ -94,12 +94,12 @@
 							{% for index in range(page_count) %}
 							<li {% if loop.index1 == now_page %}class="active" {% endif %}>
 								<a {% if loop.index1 == now_page %} href="javascript:void(0)"
-									{% else %}href="@{base_path}/blog?pageNumber=@{loop.index1}&pageSize=@{page_size}"
+									{% else %}href="@{base_path}/myblog?pageNumber=@{loop.index1}&pageSize=@{page_size}"
 									{% endif %}>@{loop.index1 }</a>
 							</li>
 							{% endfor %}
 							<li>
-								<a href="@{base_path}/blog?pageNumber=@{calcNumber(now_page,1)}&pageSize=@{page_size}"
+								<a href="@{base_path}/myblog?pageNumber=@{calcNumber(now_page,1)}&pageSize=@{page_size}"
 									aria-label="Next">
 									<span aria-hidden="true">&raquo;</span>
 								</a>
