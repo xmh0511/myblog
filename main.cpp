@@ -8,7 +8,18 @@ struct session_init {
 		auto& session = req.session("XMART_BLOG");
 		//std::cout << "init session" << std::endl;
 		if (session.empty()) {
+			//std::cout << "session.empty" << std::endl;
+			std::stringstream ss;
+			std::ifstream file("./www.config");
+			if (!file.is_open()) {
+				std::cout<<"www.config does not exsite"<<std::endl;
+				return false;
+			}
+			ss << file.rdbuf();
+			auto json = json::parse(ss.str());
+			auto base_path = json["base_path"].get<std::string>();
 			auto& session0 = req.create_session("XMART_BLOG");
+			session0.get_cookie().set_path(base_path);
 			session0.set_expires(3600);
 		}
 		return true;
