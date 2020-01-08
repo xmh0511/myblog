@@ -71,7 +71,7 @@ private:
 		std::string totalcondition = "";
 		std::string tagscondition = "";
 		auto tags_view = split(nonstd::string_view(tags.data(), tags.size()), ",");
-		for (auto index = 0; index < tags_view.size(); index++) {
+		for (auto index = 0; index < tags_view.size(); index++) { //如果有tag 拼凑条件
 			auto c = tags_view[index];
 			if (index < tags_view.size() - 1) {
 				tagscondition += "'%" + view2str(c) + "%' or ";
@@ -79,18 +79,19 @@ private:
 			}
 			tagscondition += "'%" + view2str(c) + "%'";
 		}
-		if (user_id != "0") { //all
+		if (user_id != "0") {
 			condition = "where user_id='" + user_id + "'";
-			totalcondition = condition;
 			if (!tagscondition.empty()) {
-				condition += " tag_id like " + tagscondition;
+				condition += " and  tag_id like " + tagscondition;
 			}
 		}
-		else {
+		else {  //all
+			condition = "where browse_level<>100 ";
 			if (!tagscondition.empty()) {
-				condition += "where tag_id like " + tagscondition;
+				condition += " and  tag_id like " + tagscondition;
 			}
 		}
+		totalcondition = condition;
 		condition += " order by update_at desc limit " + std::to_string((pageNumber - 1)*pageSize) + " , " + std::to_string(pageSize);
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
@@ -98,8 +99,10 @@ private:
 			auto totalr = dao.query<article_tb>(totalcondition);
 			int total_size = totalr.second.size();
 			int per_page = pageSize;
-			int page_count = total_size / pageSize + (total_size%pageSize == 0 ? 0 : 1);
-			page_data<article_tb> r{ pageSize ,pageNumber + 1,page_count ,total_size ,pageNumber,result.second };
+			auto diff = total_size / pageSize;
+			int page_count = diff + (total_size%pageSize == 0 ? 0 : 1);
+			auto next_page = (pageNumber + 1) > page_count ? pageNumber : pageNumber + 1;
+			page_data<article_tb> r{ pageSize ,next_page,page_count ,total_size ,pageNumber,result.second };
 			return r;
 		}
 		return page_data<article_tb>{4, 1, 0, 0, 1, {}};
@@ -141,17 +144,18 @@ private:
 		return list;
 	}
 	void add_browse_count(std::string const& ip, std::string const& article_id) {
-		mysql::MysqlDate date;
-		date.format_timestamp(std::time(nullptr));
+		if (ip.empty()) {
+			return;
+		}
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
-			auto r = dao.query<browse_tb>("where article_id='" + article_id + "' and ip='" + ip + "' and create_at='" + date.value() + "'");
+			auto r = dao.query<browse_tb>("where article_id='" + article_id + "' and ip='" + ip + "'");
 			if (r.second.empty()) {
 				browse_tb info;
 				info.id = 0;
 				info.ip = ip;
 				info.article_id = std::atoi(article_id.data());
-				info.create_at = date;
+				info.create_at.format_timestamp(std::time(nullptr));
 				dao.insert(info);
 			}
 		}
@@ -201,6 +205,9 @@ public:
 			list.push_back(node);
 		}
 		res.set_attr("article_list", list);
+		auto calc = result.now_page - 1;
+		auto forward_page = calc == 0 ? 1 : calc;
+		res.set_attr("forward_page", forward_page);
 		res.set_attr("page_size", result.page_size);
 		res.set_attr("page_count", result.page_count);
 		res.set_attr("next_page", result.next_page);
@@ -238,6 +245,9 @@ public:
 				list.push_back(node);
 			}
 			res.set_attr("article_list", list);
+			auto calc = result.now_page - 1;
+			auto forward_page = calc == 0 ? 1 : calc;
+			res.set_attr("forward_page", forward_page);
 			res.set_attr("page_size", result.page_size);
 			res.set_attr("page_count", result.page_count);
 			res.set_attr("next_page", result.next_page);
@@ -246,6 +256,7 @@ public:
 		}
 		else {
 			res.set_attr("article_list", list);
+			res.set_attr("forward_page", 1);
 			res.set_attr("page_size", 4);
 			res.set_attr("page_count", 0);
 			res.set_attr("next_page", 1);
@@ -533,6 +544,10 @@ public:
 
 	void regpage(request& req, response& res) {
 		res.write_view("./www/reg.html");
+	}
+
+	void loginPage(request& req, response& res) {
+		res.write_view("./www/login.html");
 	}
 
 	void login(request& req, response& res) {

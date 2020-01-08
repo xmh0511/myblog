@@ -67,7 +67,7 @@
                     <nav aria-label="Page navigation">
                         <ul class="pagination">
                             <li>
-                                <a href="@{base_path}/?pageNumber=@{calcNumber(now_page,-1)}&pageSize=@{page_size}&tag=@{tag}"
+                                <a href="@{base_path}/?pageNumber=@{forward_page}&pageSize=@{page_size}&tag=@{tag}"
                                     aria-label="Previous">
                                     <span aria-hidden="true">&laquo;</span>
                                 </a>
@@ -80,7 +80,7 @@
                             </li>
                             {% endfor %}
                             <li>
-                                <a href="@{base_path}/?pageNumber=@{calcNumber(now_page,1)}&pageSize=@{page_size}&tag=@{tag}"
+                                <a href="@{base_path}/?pageNumber=@{next_page}&pageSize=@{page_size}&tag=@{tag}"
                                     aria-label="Next">
                                     <span aria-hidden="true">&raquo;</span>
                                 </a>

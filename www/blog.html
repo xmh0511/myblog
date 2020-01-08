@@ -61,7 +61,7 @@
 								<span class="post-category"><a href="#">@{article.tag}</a></span>
 
 								<span class="post-date"><a href="#"><time class="entry-date"
-											datetime="2012-11-09T23:15:57+00:00">@{article.update_at}</time></a></span>
+											datetime="@{article.update_at}">@{article.update_at}</time></a></span>
 
 								<span class="post-author"><a href="#">@{article.author}</a></span>
 
@@ -86,7 +86,7 @@
 					<nav aria-label="Page navigation">
 						<ul class="pagination">
 							<li>
-								<a href="@{base_path}/myblog?pageNumber=@{calcNumber(now_page,-1)}&pageSize=@{page_size}"
+								<a href="@{base_path}/myblog?pageNumber=@{forward_page}&pageSize=@{page_size}"
 									aria-label="Previous">
 									<span aria-hidden="true">&laquo;</span>
 								</a>
@@ -99,7 +99,7 @@
 							</li>
 							{% endfor %}
 							<li>
-								<a href="@{base_path}/myblog?pageNumber=@{calcNumber(now_page,1)}&pageSize=@{page_size}"
+								<a href="@{base_path}/myblog?pageNumber=@{next_page}&pageSize=@{page_size}"
 									aria-label="Next">
 									<span aria-hidden="true">&raquo;</span>
 								</a>
