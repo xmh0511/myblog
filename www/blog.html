@@ -142,7 +142,7 @@
 		</div>
 	</div>
 
-    {% include "./tmpl/mobile.html" %}
+	{% include "./tmpl/mobile.html" %}
 
 	<script src="@{base_path}/static/js/script.js"></script>
 
@@ -176,6 +176,10 @@
 				}
 			}
 		})
+	}
+	//console.log("parent", window.parent.reLoginOk);
+	if (window.parent.reLoginOk) {
+		window.parent.reLoginOk();
 	}
 </script>
 

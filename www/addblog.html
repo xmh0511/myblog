@@ -78,6 +78,15 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="input-group">
+                        <span class="input-group-addon" id="basic-addon1">隐藏描述</span>
+                        <select class="levelSelect" id="browse_hide_describe">
+                            <option selected value="false">否
+                            </option>
+                            <option value="true">是
+                            </option>
+                        </select>
+                    </div>
                     <!-- <div class="input-group">
                         <span class="input-group-addon" id="basic-addon1">标签</span>
                         <select class="select">
@@ -106,6 +115,24 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" tabindex="-1" role="dialog" id="relogin">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">请重新登陆</h4>
+                </div>
+                <div class="modal-body">
+                    <iframe style="height: 600px;width: 533px;border:none;" src="@{base_path}/login"></iframe>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
     <script src="@{base_path}/static/js/script.js"></script>
 
@@ -145,10 +172,20 @@
             });
             return;
         }
-        var describe_text = $(data).text();
-        describe_text = describe_text.length >20?describe_text.substr(0,20)+"...":describe_text;
+        var browse_hide_describe = $("#browse_hide_describe").val();
+        var describe_text = "";
+        if (browse_hide_describe == "false") {
+            var describe_text_raw = $(data).text();
+            var size = Math.round(describe_text_raw.length / 5);
+            if (size > 150) {
+                size = 150;
+            }
+            describe_text = describe_text_raw.substr(0, size) + "...";
+        } else {
+            describe_text = "*************";
+        }
         var json = {
-            md_content:md_text,
+            md_content: md_text,
             content: data,
             tags: tags.join(","),
             title: title,
@@ -164,10 +201,9 @@
             success: function (res) {
                 //console.log(res);
                 if (res.success) {
-                    window.location.href = "/blog";
+                    window.location.href = "@{base_path}/myblog";
                 } else {
-                    $("#messageShow").text(res.message);
-                    $('#myModal').modal({
+                    $('#relogin').modal({
 
                     });
                 }
@@ -184,7 +220,11 @@
             $(this).removeClass("tagActive");
             $(this).attr("data-state", "false");
         }
-    })
+    });
+    window.reLoginOk = function () {
+        $('#relogin').modal("hide");
+        postBlog();
+    }
 </script>
 
 </html>
