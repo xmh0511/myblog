@@ -122,5 +122,7 @@ int main() {
 
 	server.router<POST, GET>("/reg", &Index::regUser, nullptr, session_init{}, base_path_aop{});
 
+	server.router<POST>("/upload", &Index::upload, nullptr, base_path_aop{}, check_login_ajax{});
+
 	server.run();
 }

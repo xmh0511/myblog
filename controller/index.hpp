@@ -550,6 +550,22 @@ public:
 		res.write_view("./www/login.html");
 	}
 
+	void upload(request& req, response& res) {
+		auto& file = req.file("editormd-image-file");
+		json root;
+		if (file.is_exsit()) {
+			root["success"] = 1;
+			root["message"] = "";
+			auto base_path = res.get_attr<std::string>("base_path");
+			root["url"] = base_path + file.url_path();
+		}
+		else {
+			root["success"] = 0;
+			root["message"] = "上传失败"; 
+		}
+		res.write_json(root);
+	}
+
 	void login(request& req, response& res) {
 		auto& session = req.session("XMART_BLOG");
 		auto name = req.query("name");
