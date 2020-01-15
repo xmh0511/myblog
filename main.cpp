@@ -54,7 +54,7 @@ struct check_login {
 		auto& session = req.session("XMART_BLOG");
 		//std::cout << "session is empty: " << session.empty() << std::endl;
 		if (session.get_data<std::string>("islogin") != "true") {
-			res.write_view("./www/login.html");
+			res.write_view("./www/login.html",true);
 			return false;
 		}
 		return true;
@@ -71,7 +71,7 @@ struct check_login_ajax {
 			json message;
 			message["success"] = false;
 			message["message"] = "用户认证失败";
-			res.write_json(message);
+			res.write_json(message,true);
 			return false;
 		}
 		return true;
