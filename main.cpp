@@ -2,21 +2,34 @@
 using namespace xmart;
 
 #include "./controller/index.hpp"
-
+struct wwwConfig {
+public:
+	static wwwConfig& get() {
+		static wwwConfig instance;
+		return instance;
+	}
+public:
+	bool open(std::string const& fileName) {
+		std::ifstream file(fileName);
+		if (!file.is_open()) {
+			return false;
+		}
+		std::stringstream ss;
+		ss << file.rdbuf();
+		config_ = json::parse(ss.str());
+		return true;
+	}
+	json& config() {
+		return config_;
+	}
+private:
+	json config_;
+};
 struct session_init {
 	bool before(request& req, response& res) {
 		auto& session = req.session("XMART_BLOG");
-		//std::cout << "init session" << std::endl;
 		if (session.empty()) {
-			//std::cout << "session.empty" << std::endl;
-			std::stringstream ss;
-			std::ifstream file("./www.config");
-			if (!file.is_open()) {
-				std::cout<<"www.config does not exsite"<<std::endl;
-				return false;
-			}
-			ss << file.rdbuf();
-			auto json = json::parse(ss.str());
+			auto& json = wwwConfig::get().config();
 			auto base_path = json["base_path"].get<std::string>();
 			auto& session0 = req.create_session("XMART_BLOG");
 			session0.get_cookie().set_path(base_path);
@@ -31,13 +44,7 @@ struct session_init {
 
 struct base_path_aop {
 	bool before(request& req, response& res) {
-		std::stringstream ss;
-		std::ifstream file("./www.config");
-		if (!file.is_open()) {
-			return false;
-		}
-		ss << file.rdbuf();
-		auto json = json::parse(ss.str());
+		auto& json = wwwConfig::get().config();
 		auto base_path = json["base_path"].get<std::string>();
 		res.set_attr("base_path", base_path);
 		auto is_proxy = json["proxy"].get<bool>();
@@ -70,6 +77,7 @@ struct check_login_ajax {
 		if (session.get_data<std::string>("islogin") != "true") {
 			json message;
 			message["success"] = false;
+			message["code"] = 404;
 			message["message"] = "用户认证失败";
 			res.write_json(message,true);
 			return false;
@@ -88,6 +96,11 @@ int main() {
 		std::cout<<"config has some error"<<std::endl;
 		return 0;
 	}
+
+	if (!wwwConfig::get().open("./www.config")) {
+		std::cout << "www.config does not exist" << std::endl;
+		return  0;
+	} 
 
 	server.set_url_redirect(false);
 

@@ -218,8 +218,13 @@
             success: function (res) {
                 if (res.success) {
                     window.location.href = "@{base_path}/myblog";
-                } else {
+                } else if(res.code==404){
                     $('#relogin').modal({
+
+                    });
+                }else{
+                    $("#messageShow").text(res.message);
+                    $('#myModal').modal({
 
                     });
                 }
