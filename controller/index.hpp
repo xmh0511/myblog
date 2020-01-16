@@ -345,7 +345,7 @@ public:
 				if (userinfo.id.value() == article.user_id.value() || check_level) {
 					auto artid = std::to_string(number);
 					auto is_proxy = res.get_attr<bool>("proxy");
-					std::string browse_ip = is_proxy ? view2str(req.header("X-Real-IP")) : req.connection().remote_endpoint();
+					std::string browse_ip = is_proxy ? view2str(req.header("X-Real-IP")) : req.connection().remote_ip();
 					add_browse_count(browse_ip, artid);
 					res.set_attr("state", true);
 					res.set_attr("article_data", map_to_json(article));
