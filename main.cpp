@@ -75,6 +75,9 @@ struct check_login_ajax {
 	bool before(request& req, response& res) {
 		auto& session = req.session("XMART_BLOG");
 		if (session.get_data<std::string>("islogin") != "true") {
+			if (req.content_type() == content_type::multipart_form) {
+				req.remove_all_upload_files();
+			}
 			json message;
 			message["success"] = false;
 			message["code"] = 404;
@@ -101,6 +104,7 @@ int main() {
 		std::cout << "www.config does not exist" << std::endl;
 		return  0;
 	} 
+
 
 	server.set_url_redirect(false);
 
