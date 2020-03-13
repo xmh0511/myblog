@@ -321,10 +321,16 @@ public:
 
 	void detail(request& req, response& res) {
 		auto id = req.param(0);
-		auto& session = req.session("XMART_BLOG");
+		auto number = std::atoi(id.data());
+		if (id.empty() || number <= 0) {
+			res.set_attr("state", false);
+			std::string msg = "文章已删除或不存在";
+			res.set_attr("msg", msg);
+			res.write_view("./www/single.html", true);
+			return;
+		}
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
-			auto number = std::atoi(id.data());
 			auto result = dao.query<article_tb>("where id='" + std::to_string(number) + "'");
 			if (result.second.empty()) {
 				res.set_attr("state", false);
@@ -354,6 +360,7 @@ public:
 					res.write_view("./www/single.html", true);
 					return;
 				}
+				auto& session = req.session("XMART_BLOG");
 				if (session.empty() || session.get_data<std::string>("islogin") != "true") {
 					res.write_view("./www/login.html", true);
 					return;
