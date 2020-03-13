@@ -1,6 +1,7 @@
 #include "xmart.hpp"
 using namespace xmart;
 
+#include "./model/model.hpp"
 #include "./controller/index.hpp"
 struct wwwConfig {
 public:
@@ -71,6 +72,7 @@ struct check_login {
 	}
 };
 
+
 struct check_login_ajax {
 	bool before(request& req, response& res) {
 		auto& session = req.session("XMART_BLOG");
@@ -125,7 +127,7 @@ int main() {
 
 	server.router<POST>("/addarticle", &Index::addarticle, nullptr, session_init{}, base_path_aop{}, check_login_ajax{});
 
-	server.router<GET>("/detail/*", &Index::detail, nullptr, session_init{}, base_path_aop{}, check_login{});
+	server.router<GET>("/detail/*", &Index::detail, nullptr, session_init{}, base_path_aop{});
 
 	server.router<GET>("/edit/*", &Index::edit, nullptr, session_init{}, base_path_aop{}, check_login{});
 

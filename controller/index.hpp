@@ -322,12 +322,10 @@ public:
 	void detail(request& req, response& res) {
 		auto id = req.param(0);
 		auto& session = req.session("XMART_BLOG");
-		auto user_id = session.get_data<std::int64_t>("user_id");
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
 			auto number = std::atoi(id.data());
 			auto result = dao.query<article_tb>("where id='" + std::to_string(number) + "'");
-			auto user = dao.query<user_tb>("where id='" + std::to_string(user_id) + "'");
 			if (result.second.empty()) {
 				res.set_attr("state", false);
 				std::string msg = "文章已删除或不存在";
@@ -337,6 +335,31 @@ public:
 			}
 			else {
 				auto& article = result.second[0];
+				auto author = dao.query<user_tb>("where id='" + std::to_string(article.user_id.value()) + "'");
+				if (article.browse_level.value() == 1) {
+					auto artid = std::to_string(number);
+					auto is_proxy = res.get_attr<bool>("proxy");
+					std::string browse_ip = is_proxy ? view2str(req.header("X-Real-IP")) : req.connection().remote_ip();
+					add_browse_count(browse_ip, artid);
+					auto result0 = get_article_list("0", 4, 1);
+					res.set_attr("article_list", list_to_json(result0.data));
+					res.set_attr("tag_list", list_to_json(get_tags()));
+					res.set_attr("state", true);
+					res.set_attr("article_data", map_to_json(article));
+					res.set_attr("author", author.second[0].name);
+					auto tags = get_tag_names(split(nonstd::string_view(article.tag_id.data(), article.tag_id.size()), ","));
+					res.set_attr("comment_list", get_comment_list_json(artid));
+					res.set_attr("tags", join(tags, ","));
+					res.set_attr("browse_count", get_browse_count(artid));
+					res.write_view("./www/single.html", true);
+					return;
+				}
+				if (session.empty() || session.get_data<std::string>("islogin") != "true") {
+					res.write_view("./www/login.html", true);
+					return;
+				}
+				auto user_id = session.get_data<std::int64_t>("user_id");
+				auto user = dao.query<user_tb>("where id='" + std::to_string(user_id) + "'");
 				auto& userinfo = user.second[0];
 				auto check_level = userinfo.browse_level.value() >= article.browse_level.value();
 				auto result0 = get_article_list("0", 4, 1);
@@ -349,7 +372,7 @@ public:
 					add_browse_count(browse_ip, artid);
 					res.set_attr("state", true);
 					res.set_attr("article_data", map_to_json(article));
-					res.set_attr("author", userinfo.name);
+					res.set_attr("author", author.second[0].name);
 					auto tags = get_tag_names(split(nonstd::string_view(article.tag_id.data(), article.tag_id.size()), ","));
 					res.set_attr("comment_list", get_comment_list_json(artid));
 					res.set_attr("tags", join(tags, ","));
