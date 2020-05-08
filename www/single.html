@@ -87,7 +87,9 @@
                     <div>@{msg}</div>
                     {% endif %}
                 </main>
-                {% include "./tmpl/aside.html" %}
+                {% if state == true %}
+                 {% include "./tmpl/aside.html" %}
+                {% endif %}
             </div>
         </div>
     </div>

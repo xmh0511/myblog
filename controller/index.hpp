@@ -617,7 +617,7 @@ public:
 					//std::cout << "password equit" << std::endl;
 					session.set_data("user_id", data.id.value());
 					session.set_data("islogin", "true");
-					session.set_expires(3600);
+					session.set_expires(28800);
 					auto base_path = res.get_attr<std::string>("base_path");
 					session.get_cookie().set_path(base_path);
 					res.redirect(base_path + "/myblog");

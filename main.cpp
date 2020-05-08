@@ -117,31 +117,31 @@ int main() {
 		return r;
 	});
 
-	server.router<GET>("/", &Index::index, nullptr, session_init{}, base_path_aop{});
+	server.router<GET>("/", &Index::index,  session_init{}, base_path_aop{});
 
-	server.router<POST,GET>("/login", &Index::login, nullptr, session_init{}, base_path_aop{});
+	server.router<POST,GET>("/login", &Index::login,  session_init{}, base_path_aop{});
 
-	server.router<GET>("/myblog", &Index::blog, nullptr, session_init{}, base_path_aop{}, check_login{});
+	server.router<GET>("/myblog", &Index::blog,  session_init{}, base_path_aop{}, check_login{});
 
-	server.router<GET>("/addblog", &Index::addblog, nullptr, session_init{}, base_path_aop{}, check_login{});
+	server.router<GET>("/addblog", &Index::addblog,  session_init{}, base_path_aop{}, check_login{});
 
-	server.router<POST>("/addarticle", &Index::addarticle, nullptr, session_init{}, base_path_aop{}, check_login_ajax{});
+	server.router<POST>("/addarticle", &Index::addarticle,  session_init{}, base_path_aop{}, check_login_ajax{});
 
-	server.router<GET>("/detail/*", &Index::detail, nullptr, session_init{}, base_path_aop{});
+	server.router<GET>("/detail/*", &Index::detail,  session_init{}, base_path_aop{});
 
-	server.router<GET>("/edit/*", &Index::edit, nullptr, session_init{}, base_path_aop{}, check_login{});
+	server.router<GET>("/edit/*", &Index::edit,  session_init{}, base_path_aop{}, check_login{});
 
-	server.router<POST>("/saveedit", &Index::saveedit, nullptr, session_init{}, base_path_aop{}, check_login_ajax{});
+	server.router<POST>("/saveedit", &Index::saveedit,  session_init{}, base_path_aop{}, check_login_ajax{});
 
-	server.router<POST>("/delArticle", &Index::delArticle, nullptr, session_init{}, base_path_aop{}, check_login_ajax{});
+	server.router<POST>("/delArticle", &Index::delArticle,  session_init{}, base_path_aop{}, check_login_ajax{});
 
-	server.router<POST>("/addComment", &Index::addComment, nullptr, session_init{}, base_path_aop{}, check_login{});
+	server.router<POST>("/addComment", &Index::addComment,  session_init{}, base_path_aop{}, check_login{});
 
-	server.router<POST, GET>("/regpage", &Index::regpage, nullptr, session_init{}, base_path_aop{});
+	server.router<POST, GET>("/regpage", &Index::regpage,  session_init{}, base_path_aop{});
 
-	server.router<POST, GET>("/reg", &Index::regUser, nullptr, session_init{}, base_path_aop{});
+	server.router<POST, GET>("/reg", &Index::regUser,  session_init{}, base_path_aop{});
 
-	server.router<POST>("/upload", &Index::upload, nullptr, base_path_aop{}, check_login_ajax{});
+	server.router<POST>("/upload", &Index::upload,  base_path_aop{}, check_login_ajax{});
 
 	server.run();
 }
