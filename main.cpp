@@ -94,6 +94,19 @@ struct check_login_ajax {
 	}
 };
 
+struct  disableUpload {
+	bool prehandle(request& req, response& res) {
+		if (req.content_type() == content_type::multipart_form) {
+			res.write_view("./www/error.html", true, http_status::bad_request);
+			return false;
+		}
+		return true;
+	}
+	bool posthandle() {
+		return true;
+	}
+};
+
 int main() {
 	bool r = false;
 	http_server& server = init_xmart("./config.json", r);
@@ -117,31 +130,35 @@ int main() {
 		return r;
 	});
 
-	server.router<GET>("/", &Index::index,  session_init{}, base_path_aop{});
+	server.router<GET>("/", &Index::index, session_init{}, base_path_aop{}, disableUpload{});
 
-	server.router<POST,GET>("/login", &Index::login,  session_init{}, base_path_aop{});
+	server.router<POST,GET>("/login", &Index::login,  session_init{}, base_path_aop{}, disableUpload{});
 
-	server.router<GET>("/myblog", &Index::blog,  session_init{}, base_path_aop{}, check_login{});
+	server.router<GET>("/myblog", &Index::blog,  session_init{}, base_path_aop{}, check_login{}, disableUpload{});
 
-	server.router<GET>("/addblog", &Index::addblog,  session_init{}, base_path_aop{}, check_login{});
+	server.router<GET>("/addblog", &Index::addblog,  session_init{}, base_path_aop{}, check_login{}, disableUpload{});
 
-	server.router<POST>("/addarticle", &Index::addarticle,  session_init{}, base_path_aop{}, check_login_ajax{});
+	server.router<POST>("/addarticle", &Index::addarticle,  session_init{}, base_path_aop{}, check_login_ajax{}, disableUpload{});
 
-	server.router<GET>("/detail/*", &Index::detail,  session_init{}, base_path_aop{});
+	server.router<GET>("/detail/*", &Index::detail,  session_init{}, base_path_aop{}, disableUpload{});
 
-	server.router<GET>("/edit/*", &Index::edit,  session_init{}, base_path_aop{}, check_login{});
+	server.router<GET>("/edit/*", &Index::edit,  session_init{}, base_path_aop{}, check_login{}, disableUpload{});
 
-	server.router<POST>("/saveedit", &Index::saveedit,  session_init{}, base_path_aop{}, check_login_ajax{});
+	server.router<POST>("/saveedit", &Index::saveedit,  session_init{}, base_path_aop{}, check_login_ajax{}, disableUpload{});
 
-	server.router<POST>("/delArticle", &Index::delArticle,  session_init{}, base_path_aop{}, check_login_ajax{});
+	server.router<POST>("/delArticle", &Index::delArticle,  session_init{}, base_path_aop{}, check_login_ajax{}, disableUpload{});
 
-	server.router<POST>("/addComment", &Index::addComment,  session_init{}, base_path_aop{}, check_login{});
+	server.router<POST>("/addComment", &Index::addComment,  session_init{}, base_path_aop{}, check_login{}, disableUpload{});
 
-	server.router<POST, GET>("/regpage", &Index::regpage,  session_init{}, base_path_aop{});
+	server.router<POST, GET>("/regpage", &Index::regpage,  session_init{}, base_path_aop{}, disableUpload{});
 
-	server.router<POST, GET>("/reg", &Index::regUser,  session_init{}, base_path_aop{});
+	server.router<POST, GET>("/reg", &Index::regUser,  session_init{}, base_path_aop{}, disableUpload{});
 
 	server.router<POST>("/upload", &Index::upload,  base_path_aop{}, check_login_ajax{});
+
+	server.router<GET,POST>("/performance", [](request& req, response& res) {
+		res.write_string("ok", true);
+		}, disableUpload{});
 
 	server.run();
 }
