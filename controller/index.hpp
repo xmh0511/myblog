@@ -17,7 +17,7 @@ private:
 	std::vector<tag_tb> get_tags() {
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
-			auto tags = dao.query<tag_tb>();
+			auto tags = dao.query<tag_tb>("");
 			if (tags.first) {
 				return tags.second;
 			}
@@ -27,7 +27,7 @@ private:
 	std::vector<browse_level_tb> get_browse_levels() {
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
-			auto level = dao.query<browse_level_tb>();
+			auto level = dao.query<browse_level_tb>("");
 			if (level.first) {
 				return level.second;
 			}
@@ -39,7 +39,7 @@ private:
 		std::vector<std::string> result;
 		if (dao.is_open()) {
 			for (auto& iter : ids) {
-				auto tags = dao.query<tag_tb>("where id='" + view2str(iter) + "'");
+				auto tags = dao.query<tag_tb>("where id=?", view2str(iter));
 				if (!tags.second.empty()) {
 					result.push_back(tags.second[0].name);
 				}
@@ -111,8 +111,8 @@ private:
 	bool check_level(std::string const& user_id, std::string const& article_id) {
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
-			auto result = dao.query<article_tb>("where id='" + article_id + "'");
-			auto user = dao.query<user_tb>("where id='" + user_id + "'");
+			auto result = dao.query<article_tb>("where id=?", article_id);
+			auto user = dao.query<user_tb>("where id=?", user_id);
 			if (result.second.empty()) {
 				return false;
 			}
@@ -131,10 +131,10 @@ private:
 		dao_t<mysql> dao;
 		json list = json::array();
 		if (dao.is_open()) {
-			auto r = dao.query<comment_tb>("where article_id='" + article_id + "'");
+			auto r = dao.query<comment_tb>("where article_id=?", article_id);
 			for (auto& iter : r.second) {
 				json node;
-				auto users = dao.query<user_tb>("where id='" + std::to_string(iter.user_id.value()) + "'");
+				auto users = dao.query<user_tb>("where id=?", std::to_string(iter.user_id.value()));
 				node["name"] = users.second[0].name;
 				node["time"] = iter.create_at.value();
 				node["content"] = iter.content;
@@ -149,7 +149,7 @@ private:
 		}
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
-			auto r = dao.query<browse_tb>("where article_id='" + article_id + "' and ip='" + ip + "'");
+			auto r = dao.query<browse_tb>("where article_id=? and ip=?", article_id, ip);
 			if (r.second.empty()) {
 				browse_tb info;
 				info.id = 0;
@@ -163,7 +163,7 @@ private:
 	std::int64_t get_browse_count(std::string const& article_id) {
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
-			auto r = dao.query<browse_tb>("where article_id='" + article_id + "'");
+			auto r = dao.query<browse_tb>("where article_id=?", article_id);
 			return r.second.size();
 		}
 		return 0;
@@ -171,7 +171,7 @@ private:
 	std::string get_browse_level_name(std::string const& browse_level) {
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
-			auto r = dao.query<browse_level_tb>("where level='" + browse_level + "'");
+			auto r = dao.query<browse_level_tb>("where level=?", browse_level);
 			if (!r.second.empty()) {
 				return r.second[0].name;
 			}
@@ -192,7 +192,7 @@ public:
 			node["update_at"] = iter.update_at.value();
 			node["title"] = iter.title;
 			dao_t<mysql> dao;
-			auto user = dao.query<user_tb>("where id='" + std::to_string(iter.user_id.value()) + "'");
+			auto user = dao.query<user_tb>("where id=?", std::to_string(iter.user_id.value()));
 			auto name = user.second[0].name;
 			node["author"] = name;
 			node["id"] = iter.id.value();
@@ -227,7 +227,7 @@ public:
 		if (dao.is_open()) {
 			/*auto result = dao.query<article_tb>("where user_id='" + std::to_string(user_id) + "'");*/
 			auto result = get_article_list(std::to_string(user_id), std::atoi(pageSize.data()), std::atoi(pageNumber.data()));
-			auto user = dao.query<user_tb>("where id='" + std::to_string(user_id) + "'");
+			auto user = dao.query<user_tb>("where id=?", std::to_string(user_id));
 			auto name = user.second[0].name;
 			for (auto& iter : result.data) {
 				json node;
@@ -331,7 +331,7 @@ public:
 		}
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
-			auto result = dao.query<article_tb>("where id='" + std::to_string(number) + "'");
+			auto result = dao.query<article_tb>("where id=?", std::to_string(number));
 			if (result.second.empty()) {
 				res.set_attr("state", false);
 				std::string msg = "文章已删除或不存在";
@@ -341,7 +341,7 @@ public:
 			}
 			else {
 				auto& article = result.second[0];
-				auto author = dao.query<user_tb>("where id='" + std::to_string(article.user_id.value()) + "'");
+				auto author = dao.query<user_tb>("where id=?", std::to_string(article.user_id.value()));
 				if (article.browse_level.value() == 1) {
 					auto artid = std::to_string(number);
 					auto is_proxy = res.get_attr<bool>("proxy");
@@ -366,7 +366,7 @@ public:
 					return;
 				}
 				auto user_id = session.get_data<std::int64_t>("user_id");
-				auto user = dao.query<user_tb>("where id='" + std::to_string(user_id) + "'");
+				auto user = dao.query<user_tb>("where id=?", std::to_string(user_id));
 				auto& userinfo = user.second[0];
 				auto check_level = userinfo.browse_level.value() >= article.browse_level.value();
 				auto result0 = get_article_list("0", 4, 1);
@@ -407,7 +407,7 @@ public:
 		if (dao.is_open()) {
 			auto number = std::atoi(id.data());
 			auto check_article_id = std::to_string(number);
-			auto result = dao.query<article_tb>("where id='" + check_article_id + "' and user_id='" + std::to_string(user_id) + "'");
+			auto result = dao.query<article_tb>("where id=? and user_id=?" ,check_article_id ,std::to_string(user_id));
 			if (result.second.empty()) {
 				res.set_attr("state", false);
 				std::string msg = "非法编辑";
@@ -442,7 +442,7 @@ public:
 				auto id = data["id"].get<std::string>();
 				auto number = std::atoi(id.data());
 				auto check_article_id = std::to_string(number);
-				auto result = dao.query<article_tb>("where id='" + check_article_id + "' and user_id='" + std::to_string(user_id) + "'");
+				auto result = dao.query<article_tb>("where id=? and user_id=? " ,check_article_id , std::to_string(user_id));
 				if (result.second.empty()) {
 					message["success"] = false;
 					message["message"] = "无效的编辑";
@@ -488,16 +488,16 @@ public:
 		if (dao.is_open()) {
 			auto number = std::atoi(id.data());
 			auto check_article_id = std::to_string(number);
-			auto result = dao.query<article_tb>("where id='" + check_article_id + "' and user_id='" + std::to_string(user_id) + "'");
+			auto result = dao.query<article_tb>("where id=? and user_id=? ", check_article_id ,std::to_string(user_id));
 			if (result.second.empty()) {
 				message["success"] = false;
 				message["message"] = "无效的删除";
 				res.write_json(message, true);
 				return;
 			}
-			bool r = dao.del<article_tb>("where id='" + check_article_id + "'");
-			message["success"] = r;
-			if (!r) {
+			auto r = dao.del<article_tb>("where id=?", check_article_id);
+			message["success"] = r.first;
+			if (!r.first) {
 				message["message"] = "删除失败";
 			}
 			res.write_json(message,true);
@@ -549,7 +549,7 @@ public:
 		}
 		dao_t<mysql> dao;
 		if (dao.is_open()) {
-			auto r = dao.query<user_tb>("where name='" + name + "'");
+			auto r = dao.query<user_tb>("where name=?" , name);
 			if (r.second.empty()) {
 				info.browse_level = 1;
 				info.create_at.format_timestamp(std::time(nullptr));
@@ -608,7 +608,7 @@ public:
 		dao_t<mysql> dao;
 		//std::cout << "dao.is_open():" << dao.is_open() << std::endl;
 		if (dao.is_open()) {
-			auto result = dao.query<user_tb>("where name='" + view2str(name) + "'");
+			auto result = dao.query<user_tb>("where name=?", view2str(name));
 			//std::cout << "result.second.empty():" << result.second.empty() << std::endl;
 			if (!result.second.empty()) {
 				auto& data = result.second[0];
