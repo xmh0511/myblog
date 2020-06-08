@@ -107,6 +107,21 @@ struct  disableUpload {
 	}
 };
 
+struct testInteceptor {
+	bool prehandle(request& req, response& res) {
+		using namespace nonstd::literals;
+		auto id = req.param("id");
+		if (id=="0"_sv) {
+			res.write_view("./www/error.html", true, http_status::bad_request);
+			return false;
+		}
+		return true;
+	}
+	bool posthandle() {
+		return true;
+	}
+};
+
 int main() {
 	bool r = false;
 	http_server& server = init_xmart("./config.json", r);
@@ -120,8 +135,6 @@ int main() {
 		return  0;
 	} 
 
-
-	server.set_url_redirect(false);
 
 	server.add_view_method("calcNumber", 2, [](inja::Arguments& args)->json {
 		auto src = args.at(0)->get<int>();
@@ -158,7 +171,7 @@ int main() {
 
 	server.router<GET,POST>("/performance", [](request& req, response& res) {
 		res.write_string("ok", true);
-		}, disableUpload{});
+		}, testInteceptor{});
 
 	server.run();
 }
