@@ -214,7 +214,7 @@ public:
 		res.set_attr("total_size", result.total_size);
 		res.set_attr("now_page", result.now_page);
 		res.set_attr("tag", view2str(tagsView));
-		res.write_view("./www/index.html",true);
+		res.write_file_view("./www/index.html",true);
 	}
 
 	void blog(request& req, response& res) {
@@ -263,7 +263,7 @@ public:
 			res.set_attr("total_size", 0);
 			res.set_attr("now_page", 1);
 		}
-		res.write_view("./www/blog.html",true);
+		res.write_file_view("./www/blog.html",true);
 	}
 
 	void addblog(request& req, response& res) {
@@ -271,7 +271,7 @@ public:
 		res.set_attr("browse_level_list", list_to_json(get_browse_levels()));
 		auto result0 = get_article_list("0", 4, 1);
 		res.set_attr("article_list", list_to_json(result0.data));
-		res.write_view("./www/addblog.html",true);
+		res.write_file_view("./www/addblog.html",true);
 	}
 
 	void addarticle(request& req, response& res) {
@@ -326,7 +326,7 @@ public:
 			res.set_attr("state", false);
 			std::string msg = "文章已删除或不存在";
 			res.set_attr("msg", msg);
-			res.write_view("./www/single.html", true);
+			res.write_file_view("./www/single.html", true);
 			return;
 		}
 		dao_t<mysql> dao;
@@ -336,7 +336,7 @@ public:
 				res.set_attr("state", false);
 				std::string msg = "文章已删除或不存在";
 				res.set_attr("msg", msg);
-				res.write_view("./www/single.html", true);
+				res.write_file_view("./www/single.html", true);
 				return;
 			}
 			else {
@@ -357,12 +357,12 @@ public:
 					res.set_attr("comment_list", get_comment_list_json(artid));
 					res.set_attr("tags", join(tags, ","));
 					res.set_attr("browse_count", get_browse_count(artid));
-					res.write_view("./www/single.html", true);
+					res.write_file_view("./www/single.html", true);
 					return;
 				}
 				auto& session = req.session("XMART_BLOG");
 				if (session.empty() || session.get_data<std::string>("islogin") != "true") {
-					res.write_view("./www/login.html", true);
+					res.write_file_view("./www/login.html", true);
 					return;
 				}
 				auto user_id = session.get_data<std::int64_t>("user_id");
@@ -384,14 +384,14 @@ public:
 					res.set_attr("comment_list", get_comment_list_json(artid));
 					res.set_attr("tags", join(tags, ","));
 					res.set_attr("browse_count", get_browse_count(artid));
-					res.write_view("./www/single.html",true);
+					res.write_file_view("./www/single.html",true);
 					return;
 				}
 				else {
 					res.set_attr("state", false);
 					std::string msg = "阅读权限不够";
 					res.set_attr("msg", msg);
-					res.write_view("./www/single.html", true);
+					res.write_file_view("./www/single.html", true);
 					return;
 				}
 			}
@@ -412,7 +412,7 @@ public:
 				res.set_attr("state", false);
 				std::string msg = "非法编辑";
 				res.set_attr("msg", msg);
-				res.write_view("./www/edit.html", true);
+				res.write_file_view("./www/edit.html", true);
 				return;
 			}
 			auto& article = result.results[0];
@@ -422,12 +422,12 @@ public:
 			res.set_attr("browse_level_list", list_to_json(get_browse_levels()));
 			auto result0 = get_article_list("0", 4, 1);
 			res.set_attr("article_list", list_to_json(result0.data));
-			res.write_view("./www/edit.html", true);
+			res.write_file_view("./www/edit.html", true);
 			return;
 		}
 		std::string msg = "服务器繁忙";
 		res.set_attr("state", false);
-		res.write_view("./www/edit.html", true);
+		res.write_file_view("./www/edit.html", true);
 	}
 
 	void saveedit(request& req, response& res) {
@@ -538,13 +538,13 @@ public:
 		auto repassword = view2str(req.query("repassword"));
 		if (name.empty() || password.empty()) {
 			res.set_attr("state", true);
-			res.write_view("./www/reg.html");
+			res.write_file_view("./www/reg.html");
 			return;
 		}
 		if (password != repassword) {
 			res.set_attr("state", false);
 			res.set_attr("msg", "两次输入的密码不一致");
-			res.write_view("./www/reg.html", true);
+			res.write_file_view("./www/reg.html", true);
 			return;
 		}
 		dao_t<mysql> dao;
@@ -559,31 +559,31 @@ public:
 				info.id = 0;
 				info.password = MD5(password).toStr();
 				auto success = dao.insert(info);
-				res.write_view("./www/login.html", true);
+				res.write_file_view("./www/login.html", true);
 				return;
 			}
 			else {
 				res.set_attr("state", false);
 				res.set_attr("msg", "用户名已存在");
-				res.write_view("./www/reg.html", true);
+				res.write_file_view("./www/reg.html", true);
 				return;
 			}
 		}
-		res.write_view("./www/reg.html",true);
+		res.write_file_view("./www/reg.html",true);
 	}
 
 	void regpage(request& req, response& res) {
-		res.write_view("./www/reg.html", true);
+		res.write_file_view("./www/reg.html", true);
 	}
 
 	void loginPage(request& req, response& res) {
-		res.write_view("./www/login.html", true);
+		res.write_file_view("./www/login.html", true);
 	}
 
 	void upload(request& req, response& res) {
 		auto& file = req.file("editormd-image-file");
 		json root;
-		if (file.is_exsit()) {
+		if (file.is_exist()) {
 			root["success"] = 1;
 			root["message"] = "";
 			auto base_path = res.get_attr<std::string>("base_path");
@@ -602,7 +602,7 @@ public:
 		auto password = req.query("password");
 		auto md5pass = MD5(view2str(password)).toStr();
 		if (name.empty() || password.empty()) {
-			res.write_view("./www/login.html", true);
+			res.write_file_view("./www/login.html", true);
 			return;
 		}
 		dao_t<mysql> dao;
@@ -626,11 +626,11 @@ public:
 			}
 			res.set_attr("state", false);
 			res.set_attr("msg", "用户名或密码不正确");
-			res.write_view("./www/login.html", true);
+			res.write_file_view("./www/login.html", true);
 			return;
 		}
 		res.set_attr("state", false);
 		res.set_attr("msg", "服务器繁忙");
-		res.write_view("./www/login.html", true);
+		res.write_file_view("./www/login.html", true);
 	}
 };

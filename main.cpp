@@ -62,7 +62,7 @@ struct check_login {
 		auto& session = req.session("XMART_BLOG");
 		//std::cout << "session is empty: " << session.empty() << std::endl;
 		if (session.get_data<std::string>("islogin") != "true") {
-			res.write_view("./www/login.html",true);
+			res.write_file_view("./www/login.html",true);
 			return false;
 		}
 		return true;
@@ -97,7 +97,7 @@ struct check_login_ajax {
 struct  disableUpload {
 	bool prehandle(request& req, response& res) {
 		if (req.content_type() == content_type::multipart_form) {
-			res.write_view("./www/error.html", true, http_status::bad_request);
+			res.write_file_view("./www/error.html", true, http_status::bad_request);
 			return false;
 		}
 		return true;
@@ -112,7 +112,7 @@ struct testInteceptor {
 		using namespace nonstd::literals;
 		auto id = req.param("id");
 		if (id=="0"_sv) {
-			res.write_view("./www/error.html", true, http_status::bad_request);
+			res.write_file_view("./www/error.html", true, http_status::bad_request);
 			return false;
 		}
 		return true;
@@ -124,7 +124,9 @@ struct testInteceptor {
 
 int main() {
 	bool r = false;
-	http_server& server = init_xmart("./config.json", r);
+	http_server& server = init_xmart("./config.json", r, [](std::string const& message) {
+		std::cout << message << std::endl;
+	});
 	if (!r) {
 		std::cout<<"config has some error"<<std::endl;
 		return 0;
