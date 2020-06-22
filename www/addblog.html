@@ -21,6 +21,8 @@
     <script src="@{base_path}/static/js/bootstrap.min.js"></script>
     <script src="@{base_path}/static/js/pace.min.js"></script>
     <script src="@{base_path}/static/js/modernizr.custom.js"></script>
+    <script src="@{base_path}/static/js/marked.min.js"></script>
+    <script src="@{base_path}/static/js/prettify.min.js"></script>
     <script src="@{base_path}/static/js/editormd.min.js"></script>
 </head>
 <style>
@@ -145,7 +147,8 @@
             imageFormats: ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
             imageUploadURL: "@{base_path}/upload",
             emoji:true,
-            // saveHTMLToTextarea: true,
+            htmlDecode:true,
+            saveHTMLToTextarea: true,
             // width: "100%",
             // height: "100%",
             // markdown: "xxxx",     // dynamic set Markdown text
@@ -153,7 +156,7 @@
         });
     });
     function postBlog() {
-        var data = editor.getPreviewedHTML();
+        var data = editor.getHTML();
         var md_text = editor.getMarkdown();
         //console.log(data);
         var tags = [];
