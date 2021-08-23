@@ -77,7 +77,7 @@ struct check_login_ajax {
 	bool before(request& req, response& res) {
 		auto& session = req.session("XMART_BLOG");
 		if (session.get_data<std::string>("islogin") != "true") {
-			if (req.content_type() == content_type::multipart_form) {
+			if (req.get_content_type() == content_type::multipart_form) {
 				req.remove_all_upload_files();
 			}
 			json message;
@@ -96,7 +96,7 @@ struct check_login_ajax {
 
 struct  disableUpload {
 	bool prehandle(request& req, response& res) {
-		if (req.content_type() == content_type::multipart_form) {
+		if (req.get_content_type() == content_type::multipart_form) {
 			res.write_file_view("./www/error.html", true, http_status::bad_request);
 			return false;
 		}
@@ -124,7 +124,7 @@ struct testInteceptor {
 
 int main() {
 	bool r = false;
-	http_server& server = init_xmart("./config.json", r, [](std::string const& message) {
+    auto smart_ptr = init_xmart("./config.json", r, [](std::string const& message) {
 		std::cout << message << std::endl;
 	});
 	if (!r) {
@@ -136,6 +136,8 @@ int main() {
 		std::cout << "www.config does not exist" << std::endl;
 		return  0;
 	} 
+
+	http_server& server = *smart_ptr;
 
 
 	server.add_view_method("calcNumber", 2, [](inja::Arguments& args)->json {

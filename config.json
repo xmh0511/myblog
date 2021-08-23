@@ -2,13 +2,21 @@
     "http_host": "0.0.0.0",
     "http_port": "8080",
     "http_thread": 0,
-    "db_host": "localhost",
-    "db_port": 3306,
-    "db_name": "myblog",
-    "db_user": "root",
-    "db_pass": "xmh5201314",
-    "db_reconnumber": 1,
-    "db_timeout": -1,
-    "db_conn_number": 2,
-    "db_character_encoding": "utf8"
+    "http_read_timeout":30,
+    "http_write_timeout":60,
+    "http_keepalive_timeout":10,
+    "db_configs":[
+      {
+        "db_index_key": "myblog",
+        "db_host": "localhost",
+        "db_port": 3306,
+        "db_name": "myblog",
+        "db_user": "root",
+        "db_pass": "root",
+        "db_reconnumber": 1,
+        "db_timeout": -1,
+        "db_conn_number": 10,
+        "db_character_encoding": "utf8"
+      }
+    ]
 }

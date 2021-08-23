@@ -15,7 +15,7 @@ public:
 	};
 private:
 	std::vector<tag_tb> get_tags() {
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		if (dao.is_open()) {
 			auto tags = dao.query<tag_tb>("");
 			if (tags.success) {
@@ -25,7 +25,7 @@ private:
 		return {};
 	}
 	std::vector<browse_level_tb> get_browse_levels() {
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		if (dao.is_open()) {
 			auto level = dao.query<browse_level_tb>("");
 			if (level.success) {
@@ -35,7 +35,7 @@ private:
 		return {};
 	}
 	std::vector<std::string> get_tag_names(std::vector<nonstd::string_view> ids) {
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		std::vector<std::string> result;
 		if (dao.is_open()) {
 			for (auto& iter : ids) {
@@ -93,7 +93,7 @@ private:
 		}
 		totalcondition = condition;
 		condition += " order by update_at desc limit " + std::to_string((pageNumber - 1)*pageSize) + " , " + std::to_string(pageSize);
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		if (dao.is_open()) {
 			auto result = dao.query<article_tb>(condition);
 			auto totalr = dao.query<article_tb>(totalcondition);
@@ -109,11 +109,11 @@ private:
 	}
 
 	bool check_level(std::string const& user_id, std::string const& article_id) {
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		if (dao.is_open()) {
 			auto result = dao.query<article_tb>("where id=?", article_id);
 			auto user = dao.query<user_tb>("where id=?", user_id);
-			if (result.results.empty()) {
+			if (result.results.empty() || user.results.empty()) {
 				return false;
 			}
 			auto& article = result.results[0];
@@ -128,13 +128,16 @@ private:
 	}
 
 	json get_comment_list_json(std::string const& article_id) {
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		json list = json::array();
 		if (dao.is_open()) {
 			auto r = dao.query<comment_tb>("where article_id=?", article_id);
 			for (auto& iter : r.results) {
 				json node;
 				auto users = dao.query<user_tb>("where id=?", std::to_string(iter.user_id.value()));
+				if (users.results.empty()) {
+					continue;
+				}
 				node["name"] = users.results[0].name;
 				node["time"] = iter.create_at.value();
 				node["content"] = iter.content;
@@ -147,7 +150,7 @@ private:
 		if (ip.empty()) {
 			return;
 		}
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		if (dao.is_open()) {
 			auto r = dao.query<browse_tb>("where article_id=? and ip=?", article_id, ip);
 			if (r.results.empty()) {
@@ -161,7 +164,7 @@ private:
 		}
 	}
 	std::int64_t get_browse_count(std::string const& article_id) {
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		if (dao.is_open()) {
 			auto r = dao.query<browse_tb>("where article_id=?", article_id);
 			return r.results.size();
@@ -169,7 +172,7 @@ private:
 		return 0;
 	}
 	std::string get_browse_level_name(std::string const& browse_level) {
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		if (dao.is_open()) {
 			auto r = dao.query<browse_level_tb>("where level=?", browse_level);
 			if (!r.results.empty()) {
@@ -191,8 +194,11 @@ public:
 			node["describe"] = iter.article_describe;
 			node["update_at"] = iter.update_at.value();
 			node["title"] = iter.title;
-			dao_t<mysql> dao;
+			dao_t<mysql> dao("myblog");
 			auto user = dao.query<user_tb>("where id=?", std::to_string(iter.user_id.value()));
+			if (user.results.empty()) {
+				continue;
+			}
 			auto name = user.results[0].name;
 			node["author"] = name;
 			node["id"] = iter.id.value();
@@ -222,12 +228,23 @@ public:
 		auto user_id = session.get_data<std::int64_t>("user_id");
 		auto pageSize = req.param("pageSize");
 		auto pageNumber = req.param("pageNumber");
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		json list = json::array();
 		if (dao.is_open()) {
 			/*auto result = dao.query<article_tb>("where user_id='" + std::to_string(user_id) + "'");*/
 			auto result = get_article_list(std::to_string(user_id), std::atoi(pageSize.data()), std::atoi(pageNumber.data()));
 			auto user = dao.query<user_tb>("where id=?", std::to_string(user_id));
+			if (user.results.empty()) {
+				res.set_attr("article_list", list);
+				res.set_attr("forward_page", 1);
+				res.set_attr("page_size", 4);
+				res.set_attr("page_count", 0);
+				res.set_attr("next_page", 1);
+				res.set_attr("total_size", 0);
+				res.set_attr("now_page", 1);
+				res.write_file_view("./www/blog.html", true);
+				return;
+			}
 			auto name = user.results[0].name;
 			for (auto& iter : result.data) {
 				json node;
@@ -294,7 +311,7 @@ public:
 			info.create_at.format_timestamp(std::time(nullptr));
 			info.update_at = info.create_at;
 			info.user_id = user_id;
-			dao_t<mysql> dao;
+			dao_t<mysql> dao("myblog");
 			if (info.content.empty() || info.md_content.empty() || info.tag_id.empty() || info.title.empty() || info.article_describe.empty()) {
 				message["success"] = false;
 				message["message"] = "新增失败,请填写完整信息";
@@ -329,7 +346,7 @@ public:
 			res.write_file_view("./www/single.html", true);
 			return;
 		}
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		if (dao.is_open()) {
 			auto result = dao.query<article_tb>("where id=?", std::to_string(number));
 			if (result.results.empty()) {
@@ -352,7 +369,7 @@ public:
 					res.set_attr("tag_list", list_to_json(get_tags()));
 					res.set_attr("state", true);
 					res.set_attr("article_data", map_to_json(article));
-					res.set_attr("author", author.results[0].name);
+					res.set_attr("author", author.results.empty()?"": author.results[0].name);
 					auto tags = get_tag_names(split(nonstd::string_view(article.tag_id.data(), article.tag_id.size()), ","));
 					res.set_attr("comment_list", get_comment_list_json(artid));
 					res.set_attr("tags", join(tags, ","));
@@ -367,6 +384,13 @@ public:
 				}
 				auto user_id = session.get_data<std::int64_t>("user_id");
 				auto user = dao.query<user_tb>("where id=?", std::to_string(user_id));
+				if (user.results.empty()) {
+					res.set_attr("state", false);
+					std::string msg = "cannot find the user";
+					res.set_attr("msg", msg);
+					res.write_file_view("./www/single.html", true);
+					return;
+				}
 				auto& userinfo = user.results[0];
 				auto check_level = userinfo.browse_level.value() >= article.browse_level.value();
 				auto result0 = get_article_list("0", 4, 1);
@@ -403,7 +427,7 @@ public:
 		auto id = req.param(0);
 		auto& session = req.session("XMART_BLOG");
 		auto user_id = session.get_data<std::int64_t>("user_id");
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		if (dao.is_open()) {
 			auto number = std::atoi(id.data());
 			auto check_article_id = std::to_string(number);
@@ -437,7 +461,7 @@ public:
 		json message;
 		try {
 			auto data = json::parse(view2str(body));
-			dao_t<mysql> dao;
+			dao_t<mysql> dao("myblog");
 			if (dao.is_open()) {
 				auto id = data["id"].get<std::string>();
 				auto number = std::atoi(id.data());
@@ -484,7 +508,7 @@ public:
 		auto user_id = session.get_data<std::int64_t>("user_id");
 		auto id = req.query("id");
 		json message;
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		if (dao.is_open()) {
 			auto number = std::atoi(id.data());
 			auto check_article_id = std::to_string(number);
@@ -525,7 +549,7 @@ public:
 			info.user_id = user_id;
 			info.create_at.format_timestamp(std::time(nullptr));
 			info.update_at = info.create_at;
-			dao_t<mysql> dao;
+			dao_t<mysql> dao("myblog");
 			auto r = dao.insert(info);
 		}
 		res.redirect(res.get_attr<std::string>("base_path") + "/detail/" + view2str(id));
@@ -547,7 +571,7 @@ public:
 			res.write_file_view("./www/reg.html", true);
 			return;
 		}
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		if (dao.is_open()) {
 			auto r = dao.query<user_tb>("where name=?" , name);
 			if (r.results.empty()) {
@@ -605,7 +629,7 @@ public:
 			res.write_file_view("./www/login.html", true);
 			return;
 		}
-		dao_t<mysql> dao;
+		dao_t<mysql> dao("myblog");
 		//std::cout << "dao.is_open():" << dao.is_open() << std::endl;
 		if (dao.is_open()) {
 			auto result = dao.query<user_tb>("where name=?", view2str(name));
